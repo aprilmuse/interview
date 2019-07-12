@@ -1,0 +1,111 @@
+php
+1 文件结构,autoload
+	PSR-0
+		PHP的命名空间必须与绝对路径一致。
+		类名首字母大写。
+		除了入口文件之外，其他的PHP文件必须是一个类，不能有执行的代码。
+2 php垃圾回收机制,unset是否会回收内容,内存溢出
+	在5.3之后版本改进了垃圾回收机制
+	PHP变量存储在一个zval容器里面的 refcount 指向该值的变量数量
+	如果发现一个zval容器中的refcount在增加，说明不是垃圾
+	如果发现一个zval容器中的refcount在减少，如果减到了0，直接当做垃圾回收
+	如果发现一个zval容器中的refcount在减少，并没有减到0，PHP会把该值放到缓冲区，当做有可能是垃圾的怀疑对象
+
+	相互引用
+
+
+当缓冲区达到临界值，PHP会自动调用一个方法取遍历每一个值，如果发现是垃圾就清理
+3 手机号正则,邮件正则
+	email '/^(_[0-9a-z])+(\.[0-9a-z]\-)*@[0-9a-z]+(\.[0-9a-z])*(\.[a-z]{2,})$/'
+4 订单,在线支付的安全性,如何设计
+	使用https,保证传输安全
+	内容正确 服务器端验证,
+	不重复提交,加入token,由服务器保证
+
+6 tcp3次握手,4次挥手
+	client ->(syn=1 随机生成seq number=123456) server
+	client (syn=1,ack=1,ack number=123457 seq=654321)<- server
+	client 校验ack number为seq number+1->(ack=1 和 ack number=654322) server(确认seq与ack number值+1和ack=1 确认连接)
+
+	client ->fin server
+	client <-ack server
+	client <-fin server
+	client ->ack server
+
+	由于收到client的fin报文后,server可能还有别的报文需要传送,所以先发送ack报文,待其他报文发送完成后,再发送fin报文
+
+
+7 linux操作 sed操作字符串 ,ifconfig
+8 hash一致性原理
+9 nginx调优
+10 高并发优化
+11 shell获取访问前100的ip地址
+	awk '{print $1}' access.log|sort|uniq -c | sort -nr | awk '{print $2}' | head -10
+	wc -l 统计行数
+	uniq -c 相当于分组统计并把统计数放在最前面
+	sort -nr  -n按数值大小排序, -r反向来排序
+
+12 cookie和session
+	1.cookie保存在客户端,容易被伪造,session保存在服务器端
+	2.cookie只能是字符串,session无限制
+	3.cookie内容有限制,session一般没有
+	4.session依赖于cookie,如果禁用cookie可以通过url传递session信息(phpsessionid)
+	5.session会影响服务器端性能
+
+Redis使用场景
+1 缓存-热数据,经常被查询但修改删除的数据
+2 计数器 单线程,避免并发 $redis->incr
+3 队列 由于redis把数据添加到队列是返回添加元素在队列的第几位，所以可以做判断用户是第几个访问这种业务,队列可以把并行请求串行,还可以做队或者栈
+4 位操作 用于数据量上亿的场景下，例如几亿用户系统的签到，去重登录次数统计，某用户是否在线状态
+redis内构建一个足够长的数组，每个数组元素只能是0和1两个值，然后这个数组的下标index用来表示我们上面例子里面的用户id（必须是数字哈），那么很显然，这个几亿长的大数组就能通过下标和元素值（0和1）来构建一个记忆系统，上面我说的几个场景也就能够实现。用到的命令是：setbit、getbit、bitcount
+
+redis线程内安全的,高并发秒杀 使用incr增加到秒杀数时告知其他请求失败
+
+
+php fastcgi phpfpm 
+npm 
+nginx 
+mysql
+
+chrome 
+cdn
+php运行模式
+
+PHP-FPM(FastCGI Process Manager：FastCGI进程管理器)是一个PHPFastCGI管理器，对于PHP 5.3.3之前的php来说，是一个补丁包 [1]  ，旨在将FastCGI进程管理整合进PHP包中。如果你使用的是PHP5.3.3之前的PHP的话，就必须将它patch到你的PHP源代码中，在编译安装PHP后才可以使用。
+
+CGI全称是“通用网关接口”(Common Gateway Interface)，HTTP服务器与你的或其它机器上的程序进行“交谈”的一种工具，其程序一般运行在网络服务器上。 CGI可以用任何一种语言编写，只要这种语言具有标准输入、输出和环境变量。如php,perl,tcl等。fork and execute
+fastcgi 是一个常种驻性的CGI模式程序,用来提高CGI性能fastcgi解析配置文件,初始化执行环境,然后再启动多个worker。当请求过来时，master会传递给一个worker，然后立即可以接受下一个请求。这样就避免了重复的劳动，效率自然是高。而且当worker不够用时，master可以根据配置预先启动几个worker等着；当然空闲worker太多时，也会停掉一些，这样就提高了性能，也节约了资源。这就是fastcgi的对进程的管理。
+
+是的，修改php.ini之后，php-cgi进程的确是没办法平滑重启的。php-fpm对此的处理机制是新的worker用新的配置，已经存在的worker处理完手上的活就可以歇着了，通过这种机制来平滑过度
+
+Nginx讲请求通过fastcgi_pass(fastcgi client)传递给php-fpm(fastcgi service),php-cgi(cgi程序)
+
+
+fastcgi.conf种的fastcgi_param传递的php-fpm
+fastcgi_pass 2种方式,端口(tcp模式) soc文件(socket),传递给php-fpm,php-cgi去处理请求
+
+tar -zxvf
+max_execution_time
+
+tar -zxvf
+
+
+centos yum yum的全称是yellow dog updater,modified，是一个shell前端软件包管理器, RPM包管理，能够从指定的服务器下载RPM包并自动安装，可以自动处理依赖性关系，并且一次性安装所有依赖的软件包，无需一次次频繁的下载、安装。
+
+
+
+INT, TERM 立刻终止
+QUIT 平滑终止
+USR1 重新打开日志文件
+USR2 平滑重载所有worker进程并重新载入配置和二进制模块
+
+ps aux | grep php-fpm
+kill -USR2 42891
+kill -USR2 `cat /usr/local/php/var/run/php-fpm.pid`
+kill -INT $(cat /usr/local/php/var/run/php-fpm.pid)
+
+
+
+
+
+
