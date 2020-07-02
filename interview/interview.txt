@@ -22,18 +22,6 @@ php
 	内容正确 服务器端验证,
 	不重复提交,加入token,由服务器保证
 
-6 tcp3次握手,4次挥手
-	client ->(syn=1 随机生成seq number=123456) server
-	client (syn=1,ack=1,ack number=123457 seq=654321)<- server
-	client 校验ack number为seq number+1->(ack=1 和 ack number=654322) server(确认seq与ack number值+1和ack=1 确认连接)
-
-	client ->fin server
-	client <-ack server
-	client <-fin server
-	client ->ack server
-
-	由于收到client的fin报文后,server可能还有别的报文需要传送,所以先发送ack报文,待其他报文发送完成后,再发送fin报文
-
 
 7 linux操作 sed操作字符串 ,ifconfig
 8 hash一致性原理
@@ -52,14 +40,7 @@ php
 	4.session依赖于cookie,如果禁用cookie可以通过url传递session信息(phpsessionid)
 	5.session会影响服务器端性能
 
-Redis使用场景
-1 缓存-热数据,经常被查询但修改删除的数据
-2 计数器 单线程,避免并发 $redis->incr
-3 队列 由于redis把数据添加到队列是返回添加元素在队列的第几位，所以可以做判断用户是第几个访问这种业务,队列可以把并行请求串行,还可以做队或者栈
-4 位操作 用于数据量上亿的场景下，例如几亿用户系统的签到，去重登录次数统计，某用户是否在线状态
-redis内构建一个足够长的数组，每个数组元素只能是0和1两个值，然后这个数组的下标index用来表示我们上面例子里面的用户id（必须是数字哈），那么很显然，这个几亿长的大数组就能通过下标和元素值（0和1）来构建一个记忆系统，上面我说的几个场景也就能够实现。用到的命令是：setbit、getbit、bitcount
 
-redis线程内安全的,高并发秒杀 使用incr增加到秒杀数时告知其他请求失败
 
 
 php fastcgi phpfpm 
@@ -84,10 +65,9 @@ Nginx讲请求通过fastcgi_pass(fastcgi client)传递给php-fpm(fastcgi service
 fastcgi.conf种的fastcgi_param传递的php-fpm
 fastcgi_pass 2种方式,端口(tcp模式) soc文件(socket),传递给php-fpm,php-cgi去处理请求
 
-tar -zxvf
+
 max_execution_time
 
-tar -zxvf
 
 
 centos yum yum的全称是yellow dog updater,modified，是一个shell前端软件包管理器, RPM包管理，能够从指定的服务器下载RPM包并自动安装，可以自动处理依赖性关系，并且一次性安装所有依赖的软件包，无需一次次频繁的下载、安装。
